@@ -91,6 +91,13 @@ namespace
         // reason: the emote and the memory write are both world-thread work.
         bool                    isHeldTongue = false;
         OllamaHeldTongueRequest heldTongue;
+
+        // Multi-message delivery. `text` stays the whole reply -- it is what
+        // the repetition checks, history and listening bots see -- and `parts`
+        // is how it goes out. A continuation carries one later part and only
+        // needs sending: everything else happened with the first.
+        std::vector<std::string> parts;
+        bool                     isContinuation = false;
     };
 
     // --- shared state -----------------------------------------------------
@@ -247,14 +254,32 @@ namespace
 
         Completion completion;
         completion.request = task.request;
-        completion.text    = std::move(text);
         completion.emoteId = emoteId;
+
+        // Split here, on the worker, where it is only string work. The spoken
+        // whole is rebuilt from the parts because the last part may have been
+        // clamped, and what is recorded must be what was actually said.
+        if (g_DeliverySplit && text.size() > g_DeliveryMaxMessageBytes)
+        {
+            completion.parts = SplitForChat(text, g_DeliveryMaxMessageBytes, g_DeliveryMaxMessages);
+            std::string spoken;
+            for (const std::string& part : completion.parts)
+                spoken += (spoken.empty() ? "" : " ") + part;
+            if (!spoken.empty())
+                text = std::move(spoken);
+            if (completion.parts.size() < 2)
+                completion.parts.clear();
+        }
+        completion.text = std::move(text);
 
         uint32_t delayMs = 0;
         if (g_EnableTypingSimulation)
         {
+            // Typing covers the first message; the rest are paced as they go out.
+            const size_t typed = completion.parts.empty() ? completion.text.length()
+                                                          : completion.parts.front().length();
             delayMs = g_TypingSimulationBaseDelay +
-                      static_cast<uint32_t>(completion.text.length()) * g_TypingSimulationDelayPerChar;
+                      static_cast<uint32_t>(typed) * g_TypingSimulationDelayPerChar;
             if (g_TypingSimulationMaxDelay > 0 && delayMs > g_TypingSimulationMaxDelay)
                 delayMs = g_TypingSimulationMaxDelay;
         }
@@ -434,6 +459,9 @@ namespace
     {
         outChannel = nullptr;
 
+        // The first message of a split reply, or the whole line.
+        const std::string& text = c.parts.empty() ? c.text : c.parts.front();
+
         switch (c.request.source)
         {
             case SRC_GENERAL_LOCAL:
@@ -447,9 +475,9 @@ namespace
                 if (!world.RealPlayerInChannel(channel))
                     return false;
 
-                channel->Say(bot->GetGUID(), c.text, LANG_UNIVERSAL);
+                channel->Say(bot->GetGUID(), text, LANG_UNIVERSAL);
                 if (LedgerRecordBotChat)
-                    LedgerRecordBotChat(bot, CHAT_MSG_CHANNEL, c.text, channel);
+                    LedgerRecordBotChat(bot, CHAT_MSG_CHANNEL, text, channel);
                 outChannel = channel;
                 return true;
             }
@@ -465,7 +493,7 @@ namespace
                     return false;
                 if (!world.GuildHasRealPlayer(bot->GetGuildId()))
                     return false;
-                return botAI->SayToGuild(c.text);
+                return botAI->SayToGuild(text);
 
             // A company of bots is its own audience (plans/31 §19). The re-check above exists because an
             // LLM round trip is seconds long and the audience can leave inside it -- but it carried the
@@ -479,7 +507,7 @@ namespace
                 if (!OllamaGroupHasRealPlayer(bot) &&
                     !(g_PartyChatterEnable && bot->GetGroup()->GetMembersCount() >= 2))
                     return false;
-                return botAI->SayToParty(c.text);
+                return botAI->SayToParty(text);
 
             case SRC_RAID_LOCAL:
                 if (g_DisableForParty || !bot->GetGroup())
@@ -487,26 +515,26 @@ namespace
                 if (!OllamaGroupHasRealPlayer(bot) &&
                     !(g_PartyChatterEnable && bot->GetGroup()->GetMembersCount() >= 2))
                     return false;
-                return botAI->SayToRaid(c.text);
+                return botAI->SayToRaid(text);
 
             case SRC_YELL_LOCAL:
                 if (g_DisableForSayYell || !AnyoneInRange(bot, g_YellDistance))
                     return false;
-                return botAI->Yell(c.text);
+                return botAI->Yell(text);
 
             case SRC_WHISPER_LOCAL:
             {
                 Player* target = ObjectAccessor::FindConnectedPlayer(ObjectGuid(c.request.targetGuid));
                 if (!target)
                     return false;
-                return botAI->Whisper(c.text, target->GetName());
+                return botAI->Whisper(text, target->GetName());
             }
 
             case SRC_SAY_LOCAL:
             default:
                 if (g_DisableForSayYell || !AnyoneInRange(bot, g_SayDistance))
                     return false;
-                return botAI->Say(c.text);
+                return botAI->Say(text);
         }
     }
 
@@ -1051,6 +1079,30 @@ namespace
         }
     }
 
+    // A later part of a split reply. The checks, the history and the listening
+    // bots were all handled with the first part, so this only has to be said --
+    // by a speaker who is still there to say it.
+    void DeliverContinuation(const Completion& c, const OllamaWorldSnapshot& world)
+    {
+        Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(c.request.botGuid));
+        if (!bot || !bot->IsInWorld() || !bot->IsAlive())
+            return;
+
+        PlayerbotAI* botAI = PlayerbotsMgr::instance().GetPlayerbotAI(bot);
+        if (!botAI)
+            return;
+
+        Channel* channel = nullptr;
+        if (!RouteMessage(bot, botAI, c, world, channel))
+            return;
+
+        NoteSpoken(c.request.scopeKey, bot->GetName());
+
+        if (g_DebugEnabled)
+            LOG_INFO("module.ollamachat", "[Ollama Chat] {} ({}, continued): {}",
+                     bot->GetName(), ChatChannelSourceLocalStr[c.request.source], c.text);
+    }
+
     // By value: a repeated tail is trimmed off the line below, and the trimmed
     // text is what gets sent, recorded and echoed to the other bots.
     void Deliver(Completion c, const OllamaWorldSnapshot& world)
@@ -1164,6 +1216,30 @@ namespace
 
         Governor_RecordUtterance(botGuid, c.request.scopeKey, c.text);
         ++g_totalDelivered;
+
+        // The rest of a split reply follows, each part after a pause that grows
+        // with its length, the way someone still talking would go on.
+        if (c.parts.size() > 1)
+        {
+            Clock::time_point at = Clock::now();
+            std::lock_guard<std::mutex> lock(g_doneMutex);
+            for (size_t i = 1; i < c.parts.size(); ++i)
+            {
+                uint32_t pauseMs = g_DeliveryPauseBaseMs +
+                                   static_cast<uint32_t>(c.parts[i].size()) * g_DeliveryPausePerCharMs;
+                if (g_DeliveryPauseMaxMs > 0 && pauseMs > g_DeliveryPauseMaxMs)
+                    pauseMs = g_DeliveryPauseMaxMs;
+                at += std::chrono::milliseconds(pauseMs);
+
+                Completion next;
+                next.request = c.request;
+                next.request.prompt.clear();
+                next.text           = c.parts[i];
+                next.isContinuation = true;
+                next.deliverAt      = at;
+                g_done.push_back(std::move(next));
+            }
+        }
 
         // The line has landed, so anyone who held their tongue waiting for this
         // speaker can now be seen to have done so.
@@ -1495,6 +1571,8 @@ void OllamaDispatch_Update(uint32_t /*diff*/)
                 ResolveAddressee(c);
             else if (c.isHeldTongue)
                 ResolveHeldTongue(c);
+            else if (c.isContinuation)
+                DeliverContinuation(c, world);
             else
                 Deliver(c, world);
         }

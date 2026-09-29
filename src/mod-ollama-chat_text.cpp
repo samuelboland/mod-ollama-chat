@@ -150,6 +150,67 @@ std::string ClampReplyWords(const std::string& text, uint32_t maxWords)
     return head.empty() ? text : head + ".";
 }
 
+std::vector<std::string> SplitForChat(const std::string& text, size_t maxBytes, size_t maxParts)
+{
+    std::vector<std::string> parts;
+    std::string rest = Trim(text);
+    if (maxBytes == 0)
+    {
+        if (!rest.empty())
+            parts.push_back(rest);
+        return parts;
+    }
+
+    while (!rest.empty())
+    {
+        if (maxParts > 0 && parts.size() + 1 == maxParts)
+        {
+            parts.push_back(ClampReplyLength(rest, static_cast<uint32_t>(maxBytes)));
+            break;
+        }
+        if (rest.size() <= maxBytes)
+        {
+            parts.push_back(rest);
+            break;
+        }
+
+        // The last sentence end that still fits, closing quotes and all.
+        size_t cut = 0;
+        for (size_t i = 0; i < rest.size() && i < maxBytes; ++i)
+        {
+            if (!IsSentenceEnd(rest, i))
+                continue;
+            size_t end = i + 1;
+            while (end < rest.size() && (rest[end] == '"' || rest[end] == '\'' || rest[end] == ')'))
+                ++end;
+            if (end <= maxBytes)
+                cut = end;
+        }
+
+        // One sentence too long for a message: the last word boundary, then any UTF-8 boundary.
+        if (cut == 0)
+        {
+            size_t space = rest.find_last_of(' ', maxBytes);
+            if (space != std::string::npos && space > 0)
+                cut = space;
+            else
+            {
+                cut = maxBytes;
+                while (cut > 0 && (static_cast<unsigned char>(rest[cut]) & 0xC0) == 0x80)
+                    --cut;
+                if (cut == 0)
+                    cut = maxBytes;
+            }
+        }
+
+        std::string head = Trim(rest.substr(0, cut));
+        if (!head.empty())
+            parts.push_back(head);
+        rest = Trim(rest.substr(cut));
+    }
+    return parts;
+}
+
 std::string DropUnfinishedTail(const std::string& text)
 {
     std::string s = Trim(text);

@@ -594,6 +594,17 @@ extern uint32_t g_TypingSimulationDelayPerChar;   // Delay per character in mill
 extern uint32_t g_TypingSimulationMaxDelay;       // Ceiling, so a long reply is not lost
 
 // --------------------------------------------
+// Multi-message delivery: a reply longer than one chat message goes out as
+// several, split at sentence ends and spaced by a pause that grows with length.
+// --------------------------------------------
+extern bool     g_DeliverySplit;
+extern uint32_t g_DeliveryMaxMessageBytes;   // 32..255; WoW's chat box limit is 255
+extern uint32_t g_DeliveryMaxMessages;       // 0 = no limit
+extern uint32_t g_DeliveryPauseBaseMs;
+extern uint32_t g_DeliveryPausePerCharMs;
+extern uint32_t g_DeliveryPauseMaxMs;
+
+// --------------------------------------------
 // Loader Functions
 // --------------------------------------------
 void LoadOllamaChatConfig();

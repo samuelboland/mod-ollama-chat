@@ -454,6 +454,41 @@ OllamaChat.TypingSimulationBaseDelay = 1000
 OllamaChat.TypingSimulationDelayPerChar = 250
 
 # --------------------------------------------
+# MULTI-MESSAGE DELIVERY
+# --------------------------------------------
+
+# OllamaChat.Delivery.Split
+#     Description: Send a reply longer than one chat message as several, the way a person keeps talking
+#                  instead of stopping at the chat box's edge. The reply is split at sentence ends (at a
+#                  word boundary when one sentence is itself too long). The first message goes out as
+#                  usual; each later one follows after a pause that grows with its length. Repetition
+#                  checks, conversation history and the bots who overhear it all see the whole reply once.
+#                  Pair with a larger OllamaChat.MaxReplyLength (and OllamaChat.Reply.NumPredict for the
+#                  person lane) so there is more than one message's worth to say.
+#     Default:     0 (off: a reply is one message, however long)
+OllamaChat.Delivery.Split = 0
+
+# OllamaChat.Delivery.MaxMessageBytes
+#     Description: Largest single message, in bytes. WoW's chat box holds 255; values outside 32..255
+#                  fall back to 255.
+#     Default:     255
+OllamaChat.Delivery.MaxMessageBytes = 255
+
+# OllamaChat.Delivery.MaxMessages
+#     Description: Most messages one reply may become. Anything past the last is dropped at a sentence
+#                  end. 0 = no limit.
+#     Default:     3
+OllamaChat.Delivery.MaxMessages = 3
+
+# OllamaChat.Delivery.PauseBaseMs / OllamaChat.Delivery.PausePerCharMs / OllamaChat.Delivery.PauseMaxMs
+#     Description: The pause before each later message: PauseBaseMs + PausePerCharMs per character of that
+#                  message, capped at PauseMaxMs (0 = no cap).
+#     Default:     1200, 30, 6000
+OllamaChat.Delivery.PauseBaseMs = 1200
+OllamaChat.Delivery.PausePerCharMs = 30
+OllamaChat.Delivery.PauseMaxMs = 6000
+
+# --------------------------------------------
 # RP PERSONALITIES SYSTEM
 # --------------------------------------------
 

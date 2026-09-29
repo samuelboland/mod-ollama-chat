@@ -485,6 +485,13 @@ bool g_ChatterUseGuildRecruitmentChannel  = false;
 // --------------------------------------------
 // Typing Simulation Settings
 // --------------------------------------------
+bool     g_DeliverySplit              = false;
+uint32_t g_DeliveryMaxMessageBytes    = 255;
+uint32_t g_DeliveryMaxMessages        = 3;
+uint32_t g_DeliveryPauseBaseMs        = 1200;
+uint32_t g_DeliveryPausePerCharMs     = 30;
+uint32_t g_DeliveryPauseMaxMs         = 6000;
+
 bool g_EnableTypingSimulation = false;
 uint32_t g_TypingSimulationBaseDelay = 1000;     // 1000ms base delay
 uint32_t g_TypingSimulationDelayPerChar = 250;
@@ -924,6 +931,16 @@ void LoadOllamaChatConfig()
     }
 
     // Typing Simulation
+    // A long answer as several chat lines, spaced like someone still talking.
+    g_DeliverySplit                   = sConfigMgr->GetOption<bool>("OllamaChat.Delivery.Split", false);
+    g_DeliveryMaxMessageBytes         = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.MaxMessageBytes", 255);
+    g_DeliveryMaxMessages             = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.MaxMessages", 3);
+    g_DeliveryPauseBaseMs             = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.PauseBaseMs", 1200);
+    g_DeliveryPausePerCharMs          = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.PausePerCharMs", 30);
+    g_DeliveryPauseMaxMs              = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.PauseMaxMs", 6000);
+    if (g_DeliveryMaxMessageBytes < 32 || g_DeliveryMaxMessageBytes > 255)
+        g_DeliveryMaxMessageBytes = 255;
+
     g_EnableTypingSimulation          = sConfigMgr->GetOption<bool>("OllamaChat.EnableTypingSimulation", false);
     g_TypingSimulationBaseDelay       = sConfigMgr->GetOption<uint32_t>("OllamaChat.TypingSimulationBaseDelay", 1000);
     g_TypingSimulationDelayPerChar    = sConfigMgr->GetOption<uint32_t>("OllamaChat.TypingSimulationDelayPerChar", 250);
