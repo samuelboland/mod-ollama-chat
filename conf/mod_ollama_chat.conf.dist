@@ -281,10 +281,21 @@ OllamaChat.Market.Talk = 0
 OllamaChat.Market.TradeChance = 60
 OllamaChat.Market.Chance = 10
 
+# OllamaChat.BlacklistMastersOnly
+#     Description: 0 = a message starting with any BlacklistCommands prefix gets no reply from any bot.
+#                  1 = it is taken as a command only by the bots the speaker is master of; every other bot
+#                  still answers. The list is full of ordinary words ("who", "wait", "look", "help", "go",
+#                  "do", "talk"), so with 0 a person without bots of their own cannot start a sentence
+#                  with them -- "who are you?" draws silence. Only a bot's master can order it, so 1 costs
+#                  nothing in the case the list exists for.
+#     Default:     0
+OllamaChat.BlacklistMastersOnly = 0
+
 # OllamaChat.BlacklistCommands
 #     Description: A comma-separated list of command prefixes that should be ignored by AI bots.
 #                  If a message starts with any of these prefixes, the bot will not respond.
-#     Default:     
+#                  See BlacklistMastersOnly for which bots that applies to.
+#     Default:
 OllamaChat.BlacklistCommands = autogear,talents,reset botAI,summon,release,revive,leave,attack,follow,flee,stay,runaway,grind,disperse,give leader,spells,cast ,quests,accept,drop,talk,reset,ss ,trainer,rti,rtsc,do ,ll ,e ,ue ,nc ,open,destroy,s ,b ,bank,gb ,u ,co ,ELVUI_VERSIONCHK,Asked,DPSMate_,LibGroupTalents,BLT,oRA3,Skada,HealBot,hbComms,questie,pfQuest,DBMv4-Ver,BWVQ3,add,remove,reset ai,report,state,help,log,stats,tank,offtank,healer,cc ,damage,boost,passive,defensive,aggressive,stay,guard,free,follow,assist,pet,stance,formation,rpg,emote,cheer,applaud,drink,eat,dance,attackers,reset instances,home,zone,who ,pos ,tele,grind,loot,quest,trainer,travel,teleport,homebind,unfollow,invite,uninvite,join,leave,leader,ready,release,save,update,reset talents,gear,trade,mail,ah ,ahscan,ahbid,ahbuy,ahsell,ahcancel,bag,repair,vendor,train,spells,reset spells,learn,unlearn,cast,uncast,use ,move,go ,look,stop,turn,face,wait,party,followleader,stayleader,moveleader,info,distance,debug,reset path,reset state,reset all,reset dungeon,reset raid,zone info,LHC40,RECOUNT,GTFO_v,Altoholic,DS_,DataStore
 
 # OllamaChat.SayDistance

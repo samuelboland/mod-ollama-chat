@@ -1353,10 +1353,19 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
     };
 
     std::string trimmedMsg = rtrim(msg);
+    // Only a bot's master can give it an order, so with BlacklistMastersOnly a
+    // line that merely starts like a command ("who are you?", "wait, what?",
+    // "do you know...") is still answered by every bot it could not command.
+    bool blacklistedForMasters = false;
     for (const std::string& blacklist : g_BlacklistCommands)
     {
         if (startsWithWord(trimmedMsg, blacklist))
         {
+            if (g_BlacklistMastersOnly)
+            {
+                blacklistedForMasters = true;
+                break;
+            }
             if (g_DebugEnabled)
                 LOG_INFO("server.loading",
                          "[Ollama Chat] Message starts with '{}' (blacklisted). Skipping bot responses.",
@@ -1727,6 +1736,14 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
     {
         if (!bot)
         {
+            continue;
+        }
+
+        if (blacklistedForMasters && OllamaIsMasterOf(player, bot))
+        {
+            if (g_DebugEnabled)
+                LOG_INFO("module.ollamachat", "[Ollama Chat] {} takes '{}' from its master {} as a command; no reply",
+                         bot->GetName(), trimmedMsg, player->GetName());
             continue;
         }
 

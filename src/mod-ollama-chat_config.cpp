@@ -485,6 +485,8 @@ bool g_ChatterUseGuildRecruitmentChannel  = false;
 // --------------------------------------------
 // Typing Simulation Settings
 // --------------------------------------------
+bool     g_BlacklistMastersOnly       = false;
+
 bool     g_ConversationEnable         = false;
 uint32_t g_ConversationHoldSeconds    = 120;
 float    g_ConversationMaxDistance    = 25.0f;
@@ -976,6 +978,7 @@ void LoadOllamaChatConfig()
 
 
     g_SkipMasterCommands = sConfigMgr->GetOption<bool>("OllamaChat.SkipMasterCommands", true);
+    g_BlacklistMastersOnly = sConfigMgr->GetOption<bool>("OllamaChat.BlacklistMastersOnly", false);
 
     // Load extra blacklist commands from config (comma-separated list)
     std::string extraBlacklist = sConfigMgr->GetOption<std::string>("OllamaChat.BlacklistCommands", "");

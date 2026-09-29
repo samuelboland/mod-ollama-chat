@@ -427,6 +427,8 @@ extern uint32_t    g_MarketTradeChance;
 extern uint32_t    g_MarketChance;
 // Orders from a bot's master (plan 21 P7): no in-character reply to what mod-playerbots runs as a command.
 extern bool        g_SkipMasterCommands;
+// BlacklistCommands only silences the bots the speaker is master of.
+extern bool        g_BlacklistMastersOnly;
 extern uint32_t    g_RelationshipMaxLength;
 extern std::string g_RelationshipUpdatePrompt;
 extern std::string g_RelationshipPromptTemplate;
