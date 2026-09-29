@@ -278,6 +278,8 @@ extern uint32_t g_SnapshotMaxPlayers;
 extern bool        g_RoleplayEnable;
 extern uint8_t     g_RoleplayStrictness;
 extern bool        g_RoleplayUseRaceVoice;
+// Said once before the race and class voices, when either is used. Empty = none.
+extern std::string g_RoleplayVoicePreamble;
 extern bool        g_RoleplayUseClassVoice;
 extern bool        g_RoleplayFactionAttitude;
 extern bool        g_RoleplayBlockMetaTerms;

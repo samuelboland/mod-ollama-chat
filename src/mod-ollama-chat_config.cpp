@@ -487,6 +487,7 @@ bool g_ChatterUseGuildRecruitmentChannel  = false;
 // --------------------------------------------
 bool     g_BlacklistMastersOnly       = false;
 bool     g_TemplateEscapes            = false;
+std::string g_RoleplayVoicePreamble;
 
 bool     g_ConversationEnable         = false;
 uint32_t g_ConversationHoldSeconds    = 120;
@@ -892,6 +893,7 @@ void LoadOllamaChatConfig()
     g_RoleplayEnable                  = sConfigMgr->GetOption<bool>("OllamaChat.Roleplay.Enable", false);
     g_RoleplayStrictness              = static_cast<uint8_t>(sConfigMgr->GetOption<uint32_t>("OllamaChat.Roleplay.Strictness", 1));
     g_RoleplayUseRaceVoice            = sConfigMgr->GetOption<bool>("OllamaChat.Roleplay.UseRaceVoice", true);
+    g_RoleplayVoicePreamble           = sConfigMgr->GetOption<std::string>("OllamaChat.Roleplay.VoicePreamble", "");
     g_RoleplayUseClassVoice           = sConfigMgr->GetOption<bool>("OllamaChat.Roleplay.UseClassVoice", true);
     g_RoleplayFactionAttitude         = sConfigMgr->GetOption<bool>("OllamaChat.Roleplay.FactionAttitude", true);
     g_RoleplayBlockMetaTerms          = sConfigMgr->GetOption<bool>("OllamaChat.Roleplay.BlockMetaTerms", true);
@@ -1371,7 +1373,7 @@ void LoadOllamaChatConfig()
                                 &g_MemoryCondensePrompt, &g_MemoryPromptTemplate, &g_MemoryEventPrompt,
                                 &g_RelationshipUpdatePrompt, &g_RelationshipPromptTemplate,
                                 &g_EmoteReactionPromptTemplate, &g_AddresseePromptTemplate, &g_InitiateDirective,
-                                &g_HeldTonguePrompt })
+                                &g_HeldTonguePrompt, &g_RoleplayVoicePreamble })
             unescape(*t);
     }
 

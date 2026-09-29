@@ -1893,6 +1893,15 @@ OllamaChat.Roleplay.UseRaceVoice = 1
 #        Default: 1
 OllamaChat.Roleplay.UseClassVoice = 1
 
+#    OllamaChat.Roleplay.VoicePreamble
+#        Said once, just before the race and class voices, when either is in the prompt. Those voices are
+#        written for everyone of a race or class and read as orders ("You are rarely sentimental"), so
+#        they overrule a character's own written temperament. A preamble can put them in their place:
+#        for example "Habits of speech common among your people and calling, which colour but never
+#        override the nature described earlier:". Empty = nothing is added.
+#        Default: (empty)
+OllamaChat.Roleplay.VoicePreamble =
+
 #    OllamaChat.Roleplay.FactionAttitude
 #        Bots speak as loyal to their own faction and wary of the other.
 #        Default: 1
