@@ -2160,6 +2160,9 @@ bool OllamaSubmitBotReply(Player* bot, Player* sender, const std::string& msg,
     request.kind = (g_RoleplayEnable && g_RoleplayStrictness >= 1)
                        ? OllamaRequestKind::RoleplayReply
                        : OllamaRequestKind::ChatReply;
+    // A person spoke and is waiting on this answer; a bot remarking to another
+    // bot is ambient, however directly it was put.
+    request.lane = senderIsBot ? OllamaLane::Voice : OllamaLane::Person;
     request.triggerBotReplies = (sourceLocal != SRC_WHISPER_LOCAL);
     // Remember an exchange with a person always, and with a companion when they are in the same company.
     // This was `!senderIsBot`, so everything bots said to each other was forgotten the moment it was said:

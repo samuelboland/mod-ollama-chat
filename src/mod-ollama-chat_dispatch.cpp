@@ -208,7 +208,7 @@ namespace
 
     void RunChatTask(const Task& task)
     {
-        OllamaApiResult api = QueryOllama(task.request.prompt, task.request.kind);
+        OllamaApiResult api = QueryOllama(task.request.prompt, task.request.kind, task.request.lane);
 
         if (!api.ok)
         {
@@ -1523,6 +1523,8 @@ void OllamaChat_DispatchEmoteReaction(Player* bot, Player* player, uint32_t text
     request.chainDepth = 0;
     request.botName    = bot->GetName();
     request.kind       = OllamaRequestKind::EventChatter;
+    // Only a person emotes at a bot by name, and they are waiting on this.
+    request.lane       = OllamaLane::Person;
     // Party lines key on the GROUP, exactly as they do in ProcessChat and in event chatter -- keying
     // them on the zone puts the reply in a different conversation space from the party chat it was
     // said in, so it counts for no cooldown, no repetition history and no thread.

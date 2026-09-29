@@ -64,7 +64,18 @@ struct OllamaEndpointSettings
     // Empty model = no lane, and every kind keeps using the fields above.
     std::string utilityUrl;
     std::string utilityModel;
+
+    // The person lane: replies to what a real player said. Same shape as the
+    // cheap lane, plus its own token cap, since a stronger model given room to
+    // answer properly needs more than an ambient remark does.
+    std::string replyUrl;
+    std::string replyModel;
+    uint32_t    replyNumPredict = 0;
 };
+
+// Which model a request is sent to. The voice is the default; the person lane
+// only applies when a reply model is configured.
+enum class OllamaLane : uint8_t { Voice, Person };
 
 // Republish from the g_Ollama* globals. Call on the world thread after config
 // load or reload.
@@ -78,7 +89,8 @@ OllamaEndpointSettings OllamaConfig_Snapshot();
 // without thinking if Ollama rejects the request for asking.
 //
 // Blocking. Call from a worker thread, never from the world thread.
-OllamaApiResult QueryOllama(const std::string& prompt, OllamaRequestKind kind);
+OllamaApiResult QueryOllama(const std::string& prompt, OllamaRequestKind kind,
+                            OllamaLane lane = OllamaLane::Voice);
 
 // Legacy shim: returns the text, or empty on any failure.
 std::string QueryOllamaAPI(const std::string& prompt);

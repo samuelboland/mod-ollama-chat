@@ -50,6 +50,12 @@ extern std::string g_OllamaModel;
 // means the lane shares g_OllamaUrl.
 extern std::string g_UtilityUrl;
 extern std::string g_UtilityModel;
+// The person lane, for replies to a line a real player said: often worth a
+// stronger model than ambient chatter. Empty model = no lane; empty url = the
+// lane shares g_OllamaUrl; NumPredict 0 = use g_OllamaNumPredict.
+extern std::string g_ReplyUrl;
+extern std::string g_ReplyModel;
+extern uint32_t    g_ReplyNumPredict;
 extern uint32_t    g_OllamaNumPredict;
 extern float       g_OllamaTemperature;
 extern float       g_OllamaTopP;

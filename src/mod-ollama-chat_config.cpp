@@ -52,6 +52,9 @@ std::string g_OllamaUrl        = "http://localhost:11434/api/generate";
 std::string g_OllamaModel      = "llama3.2:1b";
 std::string g_UtilityUrl;
 std::string g_UtilityModel;
+std::string g_ReplyUrl;
+std::string g_ReplyModel;
+uint32_t    g_ReplyNumPredict = 0;
 uint32_t    g_OllamaNumPredict = 40;
 float       g_OllamaTemperature = 0.8f;
 float       g_OllamaTopP = 0.95f;
@@ -583,7 +586,13 @@ void LoadOllamaChatConfig()
     // model means no lane at all and every kind keeps the model above.
     g_UtilityUrl                      = sConfigMgr->GetOption<std::string>("OllamaChat.Utility.Url", "");
     g_UtilityModel                    = sConfigMgr->GetOption<std::string>("OllamaChat.Utility.Model", "");
-    g_OllamaNumPredict                = sConfigMgr->GetOption<uint32_t>("OllamaChat.NumPredict", 40);
+
+    // The person lane: replies to a line a real player said. Empty model means
+    // no lane, and those replies keep the model above like everything else.
+    g_ReplyUrl                        = sConfigMgr->GetOption<std::string>("OllamaChat.Reply.Url", "");
+    g_ReplyModel                      = sConfigMgr->GetOption<std::string>("OllamaChat.Reply.Model", "");
+    g_ReplyNumPredict                 = sConfigMgr->GetOption<uint32_t>("OllamaChat.Reply.NumPredict", 0);
+    g_OllamaNumPredict               = sConfigMgr->GetOption<uint32_t>("OllamaChat.NumPredict", 40);
     g_OllamaTemperature               = sConfigMgr->GetOption<float>("OllamaChat.Temperature", 0.8f);
     g_OllamaTopP                      = sConfigMgr->GetOption<float>("OllamaChat.TopP", 0.95f);
     g_OllamaRepeatPenalty             = sConfigMgr->GetOption<float>("OllamaChat.RepeatPenalty", 1.1f);

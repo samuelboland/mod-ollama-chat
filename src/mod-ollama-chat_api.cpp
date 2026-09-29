@@ -231,6 +231,9 @@ void OllamaConfig_Publish()
     next.frequencyPenalty = g_OllamaFrequencyPenalty;
     next.utilityUrl       = g_UtilityUrl;
     next.utilityModel     = g_UtilityModel;
+    next.replyUrl         = g_ReplyUrl;
+    next.replyModel       = g_ReplyModel;
+    next.replyNumPredict  = g_ReplyNumPredict;
 
     std::lock_guard<std::mutex> lock(g_settingsMutex);
     g_settings = std::move(next);
@@ -242,7 +245,7 @@ OllamaEndpointSettings OllamaConfig_Snapshot()
     return g_settings;
 }
 
-OllamaApiResult QueryOllama(const std::string& prompt, OllamaRequestKind kind)
+OllamaApiResult QueryOllama(const std::string& prompt, OllamaRequestKind kind, OllamaLane lane)
 {
     OllamaApiResult result;
 
@@ -258,12 +261,24 @@ OllamaApiResult QueryOllama(const std::string& prompt, OllamaRequestKind kind)
     // Done here rather than in BuildRequest so the url moves with the model:
     // PerformOnce posts to cfg.url, so both have to change together or the
     // lane's model name is sent to the voice model's backend.
-    const bool routed = (kind == OllamaRequestKind::Classify) && !cfg.utilityModel.empty();
-    if (routed)
+    const bool toUtility = (kind == OllamaRequestKind::Classify) && !cfg.utilityModel.empty();
+    const bool toPerson  = !toUtility && lane == OllamaLane::Person && !cfg.replyModel.empty();
+    const bool routed    = toUtility || toPerson;
+    if (toUtility)
     {
         cfg.model = cfg.utilityModel;
         if (!cfg.utilityUrl.empty())
             cfg.url = cfg.utilityUrl;
+    }
+    else if (toPerson)
+    {
+        // The person lane is another model too, so the same rule holds: the url
+        // moves with it, and nothing learned here is about the voice model.
+        cfg.model = cfg.replyModel;
+        if (!cfg.replyUrl.empty())
+            cfg.url = cfg.replyUrl;
+        if (cfg.replyNumPredict > 0)
+            cfg.numPredict = cfg.replyNumPredict;
     }
 
     // One place decides what the "think" field should be: policy for this

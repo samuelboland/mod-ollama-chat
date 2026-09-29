@@ -57,6 +57,25 @@ OllamaChat.Model = llama3.2:1b
 OllamaChat.Utility.Url =
 OllamaChat.Utility.Model =
 
+# OllamaChat.Reply.Url / OllamaChat.Reply.Model / OllamaChat.Reply.NumPredict
+#   Description: The person lane, for replies to something a real player said
+#                (a say, whisper, party line or emote aimed at a bot). Those are
+#                the lines someone is actually reading and waiting on, so they
+#                can be worth a stronger model than the ambient chatter that
+#                makes up most of the traffic. Bots answering bots stay on
+#                OllamaChat.Model.
+#   Url:        Optional. Empty means the lane shares OllamaChat.Url.
+#   Model:      Empty (the default) means there is no lane and replies keep
+#               using OllamaChat.Model, so nothing changes until this is set.
+#   NumPredict: Token cap for the lane. 0 (the default) keeps
+#               OllamaChat.NumPredict. Raise it with multi-message delivery
+#               (OllamaChat.Delivery.*) so longer answers are not cut short.
+#   Note:       Like the cheap lane, a routed request never thinks: the
+#               think-capability probe describes OllamaChat.Model only.
+OllamaChat.Reply.Url =
+OllamaChat.Reply.Model =
+OllamaChat.Reply.NumPredict = 0
+
 # OllamaChat.NumPredict
 #     Description: Maximum number of tokens to generate in Ollama responses.
 #     0 = unlimited. Only set if you want a hard cap.
