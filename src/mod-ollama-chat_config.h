@@ -594,6 +594,16 @@ extern uint32_t g_TypingSimulationDelayPerChar;   // Delay per character in mill
 extern uint32_t g_TypingSimulationMaxDelay;       // Ceiling, so a long reply is not lost
 
 // --------------------------------------------
+// Conversation mode: a bot someone speaks to face to face stops, turns to them
+// and answers their follow-ups until they fall silent or walk away. See
+// mod-ollama-chat_conversation.h.
+// --------------------------------------------
+extern bool     g_ConversationEnable;
+extern uint32_t g_ConversationHoldSeconds;   // silence before the bot moves on (min 10)
+extern float    g_ConversationMaxDistance;   // yards; further than this ends it
+extern bool     g_ConversationHoldStill;     // pause the bot's AI and movement while engaged
+
+// --------------------------------------------
 // Multi-message delivery: a reply longer than one chat message goes out as
 // several, split at sentence ends and spaced by a pause that grows with length.
 // --------------------------------------------

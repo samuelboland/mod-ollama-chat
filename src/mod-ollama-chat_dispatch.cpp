@@ -1,6 +1,7 @@
 #include "mod-ollama-chat_dispatch.h"
 #include "mod-ollama-chat_api.h"
 #include "mod-ollama-chat_config.h"
+#include "mod-ollama-chat_conversation.h"
 #include "mod-ollama-chat_expression.h"
 #include "mod-ollama-chat_governor.h"
 #include "mod-ollama-chat_memory.h"
@@ -1263,6 +1264,12 @@ namespace
                 // random voice (plan 25 item 54).
                 Governor_NoteThreadHolder(botGuid, ObjectGuid(c.request.targetGuid),
                                           c.request.scopeKey);
+
+                // Conversation mode: the hold runs from the answer landing, so
+                // a person reading a long reply is not timed out mid-read.
+                if (c.request.lane == OllamaLane::Person &&
+                    (c.request.source == SRC_SAY_LOCAL || c.request.source == SRC_YELL_LOCAL))
+                    Conversation_Engage(bot, addressee);
             }
         }
 

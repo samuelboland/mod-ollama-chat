@@ -31,6 +31,7 @@
 #include "mod-ollama-chat_api.h"
 #include "mod-ollama-chat_personality.h"
 #include "mod-ollama-chat_config.h"
+#include "mod-ollama-chat_conversation.h"
 #include "mod-ollama-chat-utilities.h"
 #include "mod-ollama-chat_sentiment.h"
 #include "mod-ollama-chat_rag.h"
@@ -143,6 +144,12 @@ static bool OllamaIsDirectAddress(Player* bot, Player* speaker, ChatChannelSourc
 
     // Already talking to this person here.
     if (speaker && Governor_InConversation(bot->GetGUID(), speaker->GetGUID(), scopeKey))
+        return true;
+
+    // Or standing with them, mid-conversation (conversation mode). Checked
+    // apart from the window above, which only opens once a reply has landed:
+    // a quick second line can arrive before the first answer does.
+    if (Conversation_IsEngaged(bot, speaker))
         return true;
 
     if (source != SRC_PARTY_LOCAL && source != SRC_RAID_LOCAL)
@@ -1882,7 +1889,28 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
             }
         }
 
-        if (!mentionedBots.empty())
+        // Conversation mode: a person standing with a bot mid-conversation is
+        // talking to it, so it answers -- no roll, no addressee pass -- unless
+        // they name somebody else, which turns them to that bot instead.
+        Player* partner = (!senderIsBot && (sourceLocal == SRC_SAY_LOCAL || sourceLocal == SRC_YELL_LOCAL))
+                              ? Conversation_PartnerAmong(player, candidateBots)
+                              : nullptr;
+        if (partner && !mentionedBots.empty())
+        {
+            const auto firstNamed = std::min_element(mentionedBots.begin(), mentionedBots.end(),
+                [](const std::pair<size_t, Player*>& a, const std::pair<size_t, Player*>& b) { return a.first < b.first; });
+            if (firstNamed->second != partner)
+                partner = nullptr;
+        }
+
+        if (partner)
+        {
+            finalCandidates.push_back(partner);
+            if (g_DebugEnabled)
+                LOG_INFO("module.ollamachat", "[Ollama Chat] Bot {} selected (mid-conversation with {})",
+                         partner->GetName(), player->GetName());
+        }
+        else if (!mentionedBots.empty())
         {
             // Sort by position to get the first mentioned bot
             std::sort(mentionedBots.begin(), mentionedBots.end(),
@@ -2181,6 +2209,12 @@ bool OllamaSubmitBotReply(Player* bot, Player* sender, const std::string& msg,
                      bot->GetName());
         return false;
     }
+
+    // The bot has decided to answer someone standing in front of it: it stops
+    // now, while it is still within earshot, rather than when the reply lands
+    // seconds later and it has walked on.
+    if (!senderIsBot && (sourceLocal == SRC_SAY_LOCAL || sourceLocal == SRC_YELL_LOCAL))
+        Conversation_Engage(bot, sender);
 
     return true;
 }

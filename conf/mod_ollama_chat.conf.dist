@@ -454,6 +454,38 @@ OllamaChat.TypingSimulationBaseDelay = 1000
 OllamaChat.TypingSimulationDelayPerChar = 250
 
 # --------------------------------------------
+# CONVERSATION MODE
+# --------------------------------------------
+
+# OllamaChat.Conversation.Enable
+#     Description: A person who speaks to a bot face to face (say or yell) holds its attention. The bot stops
+#                  as soon as it decides to answer, turns to them, and their following say/yell lines go to
+#                  it and only it -- no reply roll, no addressee pass -- unless they name another bot. It
+#                  lets go after HoldSeconds of silence, when they move out of MaxDistance or change map,
+#                  and at once if the bot is drawn into combat. A bot in the person's own group is never
+#                  held (it follows them already). Whispers and party chat are unaffected.
+#     Default:     0 (off)
+OllamaChat.Conversation.Enable = 0
+
+# OllamaChat.Conversation.HoldSeconds
+#     Description: How long after the person's last line (or the bot's last answer landing, whichever is
+#                  later) the bot waits before going back to what it was doing. Minimum 10.
+#     Default:     120
+OllamaChat.Conversation.HoldSeconds = 120
+
+# OllamaChat.Conversation.MaxDistance
+#     Description: Yards. A conversation starts only within this range and ends when the two are further
+#                  apart than this.
+#     Default:     25
+OllamaChat.Conversation.MaxDistance = 25
+
+# OllamaChat.Conversation.HoldStill
+#     Description: 1 = the engaged bot's AI is paused and its movement stopped, so it stands and faces the
+#                  person. 0 = only the routing and pacing apply, and the bot goes on moving as it was.
+#     Default:     1
+OllamaChat.Conversation.HoldStill = 1
+
+# --------------------------------------------
 # MULTI-MESSAGE DELIVERY
 # --------------------------------------------
 

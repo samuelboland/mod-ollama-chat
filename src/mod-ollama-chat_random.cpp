@@ -1,5 +1,6 @@
 #include "mod-ollama-chat_random.h"
 #include "mod-ollama-chat_config.h"
+#include "mod-ollama-chat_conversation.h"
 #include "mod-ollama-chat_response.h"
 #include "mod-ollama-chat_dispatch.h"
 #include "mod-ollama-chat_governor.h"
@@ -290,6 +291,10 @@ void OllamaBotRandomChatter::OnUpdate(uint32 diff)
     // early, because pending replies still have to be delivered even when
     // random chatter itself is switched off.
     OllamaDispatch_Update(diff);
+
+    // Engaged bots are held every half second, not every thirty: this is what
+    // keeps one standing still and facing whoever it is talking to.
+    Conversation_Update(diff);
 
     static uint32 maintenanceTimer = 0;
     if (maintenanceTimer <= diff)

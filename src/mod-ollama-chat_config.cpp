@@ -485,6 +485,11 @@ bool g_ChatterUseGuildRecruitmentChannel  = false;
 // --------------------------------------------
 // Typing Simulation Settings
 // --------------------------------------------
+bool     g_ConversationEnable         = false;
+uint32_t g_ConversationHoldSeconds    = 120;
+float    g_ConversationMaxDistance    = 25.0f;
+bool     g_ConversationHoldStill      = true;
+
 bool     g_DeliverySplit              = false;
 uint32_t g_DeliveryMaxMessageBytes    = 255;
 uint32_t g_DeliveryMaxMessages        = 3;
@@ -931,6 +936,14 @@ void LoadOllamaChatConfig()
     }
 
     // Typing Simulation
+    // Conversation mode: a bot someone is talking to stays with them.
+    g_ConversationEnable              = sConfigMgr->GetOption<bool>("OllamaChat.Conversation.Enable", false);
+    g_ConversationHoldSeconds         = sConfigMgr->GetOption<uint32_t>("OllamaChat.Conversation.HoldSeconds", 120);
+    g_ConversationMaxDistance         = sConfigMgr->GetOption<float>("OllamaChat.Conversation.MaxDistance", 25.0f);
+    g_ConversationHoldStill           = sConfigMgr->GetOption<bool>("OllamaChat.Conversation.HoldStill", true);
+    if (g_ConversationHoldSeconds < 10)
+        g_ConversationHoldSeconds = 10;
+
     // A long answer as several chat lines, spaced like someone still talking.
     g_DeliverySplit                   = sConfigMgr->GetOption<bool>("OllamaChat.Delivery.Split", false);
     g_DeliveryMaxMessageBytes         = sConfigMgr->GetOption<uint32_t>("OllamaChat.Delivery.MaxMessageBytes", 255);
