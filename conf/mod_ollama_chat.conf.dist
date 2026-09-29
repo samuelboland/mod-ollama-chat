@@ -169,6 +169,15 @@ OllamaChat.Stop =
 #     Default:     (empty)
 OllamaChat.SystemPrompt =
 
+# OllamaChat.TemplateEscapes
+#     Description: The config parser passes values through verbatim -- and strips every double quote -- so a
+#                  "\n" written in a template reaches the model as a backslash followed by an n, and history
+#                  lines, the snapshot and memory prompts run together on one line. 1 turns \n and \t in the
+#                  prompt templates and prompts into real line breaks and tabs. Double quotes are still
+#                  stripped by the core; write examples without them.
+#     Default:     0
+OllamaChat.TemplateEscapes = 0
+
 # OllamaChat.Seed
 #     Description: Optional. Random seed for deterministic generation. Set to a number for repeatable results, or leave blank for normal random output.
 #     Example:     OllamaChat.Seed = 42

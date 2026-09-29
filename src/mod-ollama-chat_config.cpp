@@ -486,6 +486,7 @@ bool g_ChatterUseGuildRecruitmentChannel  = false;
 // Typing Simulation Settings
 // --------------------------------------------
 bool     g_BlacklistMastersOnly       = false;
+bool     g_TemplateEscapes            = false;
 
 bool     g_ConversationEnable         = false;
 uint32_t g_ConversationHoldSeconds    = 120;
@@ -1336,6 +1337,43 @@ void LoadOllamaChatConfig()
     g_DisableForSayYell = sConfigMgr->GetOption<bool>("OllamaChat.DisableForSayYell", false);
     g_DisableForGuild = sConfigMgr->GetOption<bool>("OllamaChat.DisableForGuild", false);
     g_DisableForParty = sConfigMgr->GetOption<bool>("OllamaChat.DisableForParty", false);
+
+    // AzerothCore's config parser hands values over verbatim (and strips every
+    // double quote), so a "\n" written in a template reaches the model as a
+    // backslash and an n: history lines, the snapshot and the memory prompts
+    // all ran together. With TemplateEscapes on, \n and \t in the prompt
+    // templates become real line breaks and tabs.
+    g_TemplateEscapes = sConfigMgr->GetOption<bool>("OllamaChat.TemplateEscapes", false);
+    if (g_TemplateEscapes)
+    {
+        auto unescape = [](std::string& s)
+        {
+            std::string out;
+            out.reserve(s.size());
+            for (size_t i = 0; i < s.size(); ++i)
+            {
+                if (s[i] == '\\' && i + 1 < s.size() && (s[i + 1] == 'n' || s[i + 1] == 't'))
+                {
+                    out += s[i + 1] == 'n' ? '\n' : '\t';
+                    ++i;
+                }
+                else
+                {
+                    out += s[i];
+                }
+            }
+            s = std::move(out);
+        };
+        for (std::string* t : { &g_OllamaSystemPrompt, &g_RandomChatterPromptTemplate, &g_EventChatterPromptTemplate,
+                                &g_ChatPromptTemplate, &g_ChatExtraInfoTemplate, &g_ChatHistoryHeaderTemplate,
+                                &g_ChatHistoryLineTemplate, &g_ChatHistoryFooterTemplate, &g_ChatBotSnapshotTemplate,
+                                &g_SentimentAnalysisPrompt, &g_SentimentPromptTemplate, &g_RAGPromptTemplate,
+                                &g_MemoryCondensePrompt, &g_MemoryPromptTemplate, &g_MemoryEventPrompt,
+                                &g_RelationshipUpdatePrompt, &g_RelationshipPromptTemplate,
+                                &g_EmoteReactionPromptTemplate, &g_AddresseePromptTemplate, &g_InitiateDirective,
+                                &g_HeldTonguePrompt })
+            unescape(*t);
+    }
 
     LOG_INFO("server.loading",
              "[Ollama Chat] Config loaded: Enabled = {}, SayDistance = {}, YellDistance = {}, "

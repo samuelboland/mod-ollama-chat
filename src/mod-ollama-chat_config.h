@@ -429,6 +429,8 @@ extern uint32_t    g_MarketChance;
 extern bool        g_SkipMasterCommands;
 // BlacklistCommands only silences the bots the speaker is master of.
 extern bool        g_BlacklistMastersOnly;
+// \n and \t in prompt templates become real line breaks and tabs.
+extern bool        g_TemplateEscapes;
 extern uint32_t    g_RelationshipMaxLength;
 extern std::string g_RelationshipUpdatePrompt;
 extern std::string g_RelationshipPromptTemplate;
